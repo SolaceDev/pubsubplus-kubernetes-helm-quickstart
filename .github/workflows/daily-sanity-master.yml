@@ -64,9 +64,7 @@ jobs:
         kubectl get statefulset,svc,pods,pvc,pv --show-labels
         echo "Waiting for broker to become active"
         sleep 40; kubectl describe nodes
-        until kubectl get pods --show-labels | grep pubsubplus-0 | grep -m 1 -E '1/1'; do kubectl get pods --show-labels; sleep 10; done
-        until kubectl get pods --show-labels | grep pubsubplus-1 | grep -m 1 -E '1/1'; do kubectl get pods --show-labels; sleep 10; done
-        until kubectl get pods --show-labels | grep pubsubplus-2 | grep -m 1 -E '1/1'; do kubectl get pods --show-labels; sleep 10; done
+        until kubectl get pods --show-labels | grep pubsubplus- | grep -m 1 -E '1/1'; do kubectl get pods --show-labels; sleep 10; done
         until kubectl get pods --show-labels | grep pubsubplus- | grep -m 1 -E 'active=true'; do sleep 10; done
         kubectl get statefulset,svc,pods,pvc,pv --show-labels
         if [[ `kubectl get po --show-labels | grep -c "1/1"` -ne 3 ]]; then echo "Some pods are not ready!"; kubectl get po --show-labels; exit 1; fi
