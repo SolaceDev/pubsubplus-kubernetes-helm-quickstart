@@ -13,11 +13,7 @@ endif
 
 # Tools for deploy
 KUBECTL?=kubectl
-PWD=$(shell pwd)
-KUSTOMIZE?=$(PWD)/$(PERMANENT_TMP_GOPATH)/bin/kustomize
-KUSTOMIZE_VERSION?=v3.5.4
-KUSTOMIZE_ARCHIVE_NAME?=kustomize_$(KUSTOMIZE_VERSION)_$(GOHOSTOS)_$(GOHOSTARCH).tar.gz
-kustomize_dir:=$(dir $(KUSTOMIZE))
+KUSTOMIZE = $(shell pwd)/bin/kustomize
 
 IMAGE ?= $(error IMAGE not defined, please set IMAGE=<container-image-refernce>)
 
@@ -51,22 +47,18 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
-.PHONY: test
-test: fmt vet ## Run tests.
-	go test ./... -coverprofile cover.out
-
 ##@ Build
 
 .PHONY: build
 build: fmt vet ## Build binary.
 	go build -o bin/pod-modifier ./cmd/
 
-.PHONY: docker-build
-docker-build: test ## Build docker image.
+.PHONY: image-build
+image-build: test ## Build container image.
 	docker build -t ${IMAGE} .
 
-.PHONY: docker-push
-docker-push: ## Push docker image.
+.PHONY: image-push
+image-push: ## Push container image.
 	docker push ${IMAGE}
 
 ##@ Deployment
@@ -80,21 +72,7 @@ deploy: kustomize
 undeploy: kustomize
 	$(KUSTOMIZE) build deploy | $(KUBECTL) delete --ignore-not-found -f -
 
-KUSTOMIZE = $(shell pwd)/bin/kustomize
 .PHONY: kustomize
 kustomize: ## Download kustomize locally if necessary.
-	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
-
-# go-get-tool will 'go get' any package $2 and install it to $1.
-PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
-define go-get-tool
-@[ -f $(1) ] || { \
-set -e ;\
-TMP_DIR=$$(mktemp -d) ;\
-cd $$TMP_DIR ;\
-go mod init tmp ;\
-echo "Downloading $(2)" ;\
-GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
-rm -rf $$TMP_DIR ;\
-}
-endef
+# Refer to https://kubectl.docs.kubernetes.io/installation/kustomize/binaries/ - script does not work for ARM architecture
+	(if ! test -f $(KUSTOMIZE); then cd bin && curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash; fi)

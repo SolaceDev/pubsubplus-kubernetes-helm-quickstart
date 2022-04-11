@@ -10,4 +10,4 @@ resources:
 - serviceaccount.yaml
 images:
 - name: pod-modifier
-  newName: bczoma/pod-modifier
+  newName: pod-modifier

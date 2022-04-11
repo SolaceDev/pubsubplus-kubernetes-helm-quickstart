@@ -50,7 +50,7 @@ sidecar-injector-7c8bc5f4c9-28c84   1/1     Running   0          30s
 
 ```
 # kubectl create ns test-ns
-# kubectl label namespace test-ns sidecar-injection=enabled
+# kubectl label namespace test-ns pod-modifier.solace.com=enabled
 # kubectl get namespace -L sidecar-injection
 NAME                 STATUS   AGE   SIDECAR-INJECTION
 default              Active   26m
