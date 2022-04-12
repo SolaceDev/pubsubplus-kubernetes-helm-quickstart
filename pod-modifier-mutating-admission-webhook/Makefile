@@ -12,8 +12,10 @@ GOBIN=$(shell go env GOBIN)
 endif
 
 # Tools for deploy
-KUBECTL?=kubectl
-KUSTOMIZE = $(shell pwd)/bin/kustomize
+KUBECTL?=kubectl  # Use oc for OpenShift
+#KUBECTL?=oc
+
+KUSTOMIZE?=$(shell pwd)/bin/kustomize
 
 IMAGE ?= $(error IMAGE not defined, please set IMAGE=<container-image-refernce>)
 
@@ -34,45 +36,47 @@ all: build
 # http://linuxcommand.org/lc3_adv_awk.php
 
 .PHONY: help
-help: ## Display this help.
+help: ## Display this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 ##@ Development
 
 .PHONY: fmt
-fmt: ## Run go fmt against code.
+fmt: ## Run go fmt against code
 	go fmt ./...
 
 .PHONY: vet
-vet: ## Run go vet against code.
+vet: ## Run go vet against code
 	go vet ./...
 
 ##@ Build
 
 .PHONY: build
-build: fmt vet ## Build binary.
+build: fmt vet ## Build binary
 	go build -o bin/pod-modifier ./cmd/
 
 .PHONY: image-build
-image-build: test ## Build container image.
+image-build: build ## Build container image
 	docker build -t ${IMAGE} .
 
 .PHONY: image-push
-image-push: ## Push container image.
+image-push: ## Push container image
 	docker push ${IMAGE}
 
 ##@ Deployment
 
-deploy: kustomize
+.PHONY: deploy
+deploy: ## Deploy Solace pod-modifier mutating admission webhook including related artifacts
 	cp deploy/kustomization.yaml deploy/kustomization.yaml.tmp
 	cd deploy && $(KUSTOMIZE) edit set image pod-modifier=$(IMAGE)
 	$(KUSTOMIZE) build deploy | $(KUBECTL) apply -f -
 	mv deploy/kustomization.yaml.tmp deploy/kustomization.yaml
 
-undeploy: kustomize
+.PHONY: undeploy
+undeploy: ## Undeploy webhook including related artifacts
 	$(KUSTOMIZE) build deploy | $(KUBECTL) delete --ignore-not-found -f -
 
-.PHONY: kustomize
-kustomize: ## Download kustomize locally if necessary.
+.PHONY: setup-kustomize
+setup-kustomize: ## Download and setup Kustomize tool locally if missing
 # Refer to https://kubectl.docs.kubernetes.io/installation/kustomize/binaries/ - script does not work for ARM architecture
 	(if ! test -f $(KUSTOMIZE); then cd bin && curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash; fi)
