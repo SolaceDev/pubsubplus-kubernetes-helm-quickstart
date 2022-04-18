@@ -207,6 +207,9 @@ storage:
   # storage.size: refer to the System Resource Requirements in Solace documentation for minimum storage requirements
   size: 30Gi
 
+  # storage.monitorStorageSize: if provided this will create and assign the minimum recommended storage to Monitor pods. For initial deployments only.
+  monitorStorageSize: 1500M
+
   #storage.useStorageGroup: use a single mount point storage-group, as recommended from PubSub+ version 9.12
   #  if undefined or set to false, the legacy behavior is to individually mount storage-elements in subdirectories.
   #  Note: legacy mount still works for broker version 9.12 and later but may be deprecated in the future.

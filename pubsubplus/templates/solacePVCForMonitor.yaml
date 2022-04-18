@@ -1,4 +1,5 @@
-{{- if .Values.solace.redundancy }}
+{{- if and  .Values.solace.redundancy .Values.storage.monitorStorageSize }}
+# This is a pre-install hook to create a minimum-size PVC for Monitor pods in an HA deployment
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -18,5 +19,5 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1500M
+      storage: {{ .Values.storage.monitorStorageSize }}
 {{- end }}

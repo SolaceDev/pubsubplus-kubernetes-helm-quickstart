@@ -169,6 +169,10 @@ Instead of using a storage class, the `pubsubplus` chart also allows you describ
 
 Followings are examples of how to specify parameter values in common use cases:
 
+#### Allocating smaller storage to Monitor pods in an HA deployment
+
+When deploying PubSub+ in an HA redundancy group, monitoring nodes have minimal storage requirements compared to working nodes. The default `storage.monitorStorageSize` Helm chart value enables setting and creating smaller storage for Monitor pods hosting monitoring nodes as a pre-install hook in an HA deployment (`solace.redundancy=true`), before larger storage would be automatically created. Note that this setting is effective for initial deployments only, cannot be used to upgrade an existing deployment with storage already allocated for monitoring nodes. A workaround is to mark the Monitor pod storage for delete (will not delete it immediately, only after the Monitor pod has been deleted) then follow the steps to [recreate the deployment](#re-installing-a-deployment): `kubectl delete pvc <monitoring-pod-pvc>`.
+
 #### Using the default or an existing storage class
 
 Set the `storage.useStorageClass` parameter to use a particular storage class or leave this parameter to default undefined to allocate from your platform's "default" storage class - ensure it exists.
