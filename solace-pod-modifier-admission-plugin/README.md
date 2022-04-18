@@ -2,6 +2,16 @@
 
 This project provides an [admission plugin](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/) extension to Kubernetes v1.16 or later, to support reducing the resource requirements of PubSub+ Monitoring Nodes in an HA deployment.
 
+Contents:
+  * [Overview](#overview)
+  * [Security considerations](#security-considerations)
+  * [Building and Deployment](#building-and-deployment)
+    + [Project structure](#project-structure)
+    + [Tool pre-requisites](#tool-pre-requisites)
+    + [Build and deploy steps](#build-and-deploy-steps)
+  * [How to use](#how-to-use)
+  * [Troubleshooting](#troubleshooting)
+
 ## Overview
 
 "solace-pod-modifier" implements a web server acting as a ["MutatingAdmissionWebhook" admission controller](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/). Support for both building and deployment is provided. 
@@ -99,6 +109,8 @@ pod-modifier.solace.com            1          36s
 ```
 
 ## How to use
+
+With `solace-pod-modifier` [deployed](#build-and-deploy-steps),
 
 1. Label the namespace designated for PubSub+ HA deployment with `pod-modifier.solace.com=enabled`:
 
