@@ -131,6 +131,16 @@ Additionally, CPU and memory must be sized and provided in `solace.systemScaling
 
 Note: beyond CPU and memory requirements, required storage size (see next section) also depends significantly on scaling. The calculator can be used to determine that as well.
 
+#### Reducing resource requirements of Monitoring Nodes in an HA deployment
+
+The Kubernetes StatefulSet which controls the pods that make up a PubSub+ broker [deployment in an HA redundancy group](#deployment-scaling) does not distinguish between PubSub+ HA node types: it assigns the same CPU and memory resources to pods hosting worker and monitoring node types, even though monitoring nodes have minimal resource requirements.
+
+To address this, a "solace-pod-modifier" Kubernetes admission plugin is provided as part of this repo: when deployed it intercepts pod create requests and can set the lower resource requirements for broker monitoring nodes only. Refer to the [Readme of the plugin](/solace-pod-modifier-admission-plugin/README.md) for details on how to activate and use it. Note: the plugin requires Kubernetes v1.16 or later.
+
+Ensure to define the Helm chart parameter `solace.podModifierEnabled: true` to provide the necessary annotations to the PubSub+ broker pods, which acts as a "control switch" to enable the monitoring pod resource modification.
+
+> Note: the use of the "solace-pod-modifier" Kubernetes admission plugin is not mandatory. If it is not activated or not working then the default behavior applies: monitoring nodes will have the same resource requirements as the worker nodes. If "solace-pod-modifier" is activated later then as long as the monitoring nodes have the correct annotations they can be deleted and the reduced resources will apply after the are automatically recreated .
+
 ### Disk Storage
 
 The [PubSub+ deployment uses disk storage](//docs.solace.com/Configuring-and-Managing/Configuring-Storage.htm#Storage-) for logging, configuration, guaranteed messaging and other purposes, allocated from Kubernetes volumes.
