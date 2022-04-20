@@ -23,6 +23,9 @@ jobs:
         sudo snap install kubectl --classic
         kubectl version --client
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash # setup Helm 3
+        make
+        docker ps
+        go version
 
     - name: Checkout
       uses: actions/checkout@v2
@@ -33,6 +36,12 @@ jobs:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
         service_account_key: ${{ secrets.GCP_SA_KEY }}
         export_default_credentials: true
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Linting yaml files and chart
       run: |
@@ -48,6 +57,12 @@ jobs:
         gcloud container clusters get-credentials $TESTCLUSTERNAME --zone us-east4-a --project capable-stream-180018
         popd
         kubectl get statefulset,svc,pods,pvc,pv
+
+    - name: Setup pod modifier
+      run: |
+        pushd solace-pod-modifier-admission-plugin
+        make image-build image-push IMAGE=${{ secrets.DOCKERHUB_TEST_IMAGE }}
+        popd
 
     - name: Deploy HA broker and test
       run: |
