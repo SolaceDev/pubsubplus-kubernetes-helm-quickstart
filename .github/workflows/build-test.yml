@@ -61,7 +61,7 @@ jobs:
       run: |
         pushd solace-pod-modifier-admission-plugin
         make image-build image-push IMAGE=${{ secrets.DOCKERHUB_TEST_IMAGE }}
-        make deploy IMAGE==${{ secrets.DOCKERHUB_TEST_IMAGE }}
+        make deploy IMAGE=${{ secrets.DOCKERHUB_TEST_IMAGE }}
         sleep 2
         timeout 10 bash -c 'while ! kubectl get pods -n solace-pod-modifier | grep Running ; do sleep 1; done'
         kubectl get MutatingWebhookConfiguration | grep pod-modifier.solace.com
@@ -184,5 +184,5 @@ jobs:
     - name: Delete test resources (Cleanup)
       if: ${{ always() }}
       run: |
-        # gcloud container clusters delete $TESTCLUSTERNAME --quiet --zone us-east4-a
-        # gcloud compute disks list | grep gha-test | sed 1d $rpt | while read -r a b c; do gcloud compute disks delete $a --zone $b --quiet; done
+        gcloud container clusters delete $TESTCLUSTERNAME --quiet --zone us-east4-a
+        gcloud compute disks list | grep gha-test | sed 1d $rpt | while read -r a b c; do gcloud compute disks delete $a --zone $b --quiet; done
