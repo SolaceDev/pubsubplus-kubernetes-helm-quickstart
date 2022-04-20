@@ -63,7 +63,7 @@ jobs:
         make image-build image-push IMAGE=${{ secrets.DOCKERHUB_TEST_IMAGE }}
         make deploy IMAGE==${{ secrets.DOCKERHUB_TEST_IMAGE }}
         sleep 2
-        kubectl get pods -n solace-pod-modifier | grep Running
+        timeout 10 bash -c 'while ! kubectl get pods -n solace-pod-modifier | grep Running ; do sleep 1; done'
         kubectl get MutatingWebhookConfiguration | grep pod-modifier.solace.com
         kubectl label namespace default pod-modifier.solace.com=enabled
         popd
