@@ -23,7 +23,6 @@ jobs:
         sudo snap install kubectl --classic
         kubectl version --client
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash # setup Helm 3
-        make
         docker ps
         go version
 
