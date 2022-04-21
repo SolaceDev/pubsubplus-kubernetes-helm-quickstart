@@ -102,7 +102,7 @@ jobs:
       run: |
         REPO=solace/solace-pubsub-standard
         UPGRADETAG=$(wget -q https://registry.hub.docker.com/v1/repositories/solace/solace-pubsub-standard/tags -O -  | sed -e 's/[][]//g' -e 's/"//g' -e 's/ //g' | tr '}' '\n'  | awk -F: '{print $3}' | sort -t "." -k1,1n -k2,2n -k3,3n | tail -1)
-        helm upgrade my-release pubsubplus --set solace.size=dev,solace.redundancy=true,tls.enabled=true,tls.serverCertificatesSecret=test-tls,solace.usernameAdminPassword=admin,image.repository=$REPO,image.tag=$UPGRADETAG
+        helm upgrade my-release pubsubplus --set solace.size=dev,solace.redundancy=true,solace.podModifierEnabled=true,tls.enabled=true,tls.serverCertificatesSecret=test-tls,solace.usernameAdminPassword=admin,image.repository=$REPO,image.tag=$UPGRADETAG
         kubectl get statefulset,svc,pods,pvc,pv --show-labels
         echo "Waiting for broker to become active after upgrade"
         statefulset_name=$(kubectl get statefulset | grep pubsubplus |  awk '{print $1}')
@@ -184,5 +184,5 @@ jobs:
     - name: Delete test resources (Cleanup)
       if: ${{ always() }}
       run: |
-        # gcloud container clusters delete $TESTCLUSTERNAME --quiet --zone us-east4-a
-        # gcloud compute disks list | grep gha-test | sed 1d $rpt | while read -r a b c; do gcloud compute disks delete $a --zone $b --quiet; done
+        gcloud container clusters delete $TESTCLUSTERNAME --quiet --zone us-east4-a
+        gcloud compute disks list | grep gha-test | sed 1d $rpt | while read -r a b c; do gcloud compute disks delete $a --zone $b --quiet; done
