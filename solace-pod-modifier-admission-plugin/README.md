@@ -34,7 +34,9 @@ Following safeguards are in place:
 
 ## Building and Deployment
 
-This project needs to be built first, which results in a container image of the webhook server in a specified repo. When deploying, webhook pod(s) (by default two replicas for redundancy) will be created using the container image, a webhook service as an entry point for admission requests, and a `MutatingWebhookConfiguration` object, which is an Admission registration that specifies which webhook service to call and when.
+This project needs to be built first, which results in a container image of the webhook server in a specified repo. When deploying, a webhook pod will be created using the container image, a webhook service as an entry point for admission requests, and a `MutatingWebhookConfiguration` object, which is an Admission registration that specifies which webhook service to call and when.
+
+> Note: this release only supports one replica of the webhook pod running, more replicas will be supported in a later release.
 
 ### Project structure
 
@@ -91,7 +93,6 @@ make deploy IMAGE=<repo-name>/<image-name>:<tag>
 Deployment options:
 * Container image: as above, the container image is directly provided in the `make` command
 * Image pull secrets: if required, uncomment and edit in `deploy/deployment.yaml`
-* Number of webhook pod replicas: adjust in `deploy/deployment.yaml`. Default settings is two replicas.
 * Namespace name: default is `solace-pod-modifier`, adjust in `deploy/kustomization.yaml`. *Important:* if using OpenShift, do not use the `default` namespace (project).
 
 4. Verify the webhook pods are up and running in the `solace-pod-modifier` namespace and the `MutatingWebhookConfiguration` object has been created:
@@ -100,7 +101,6 @@ Deployment options:
 kubectl get pods -n solace-pod-modifier
 NAME                                              READY   STATUS    RESTARTS   AGE
 pod-modifier-webhook-deployment-d45f8b7dd-968gf   1/1     Running   0          30s
-pod-modifier-webhook-deployment-d45f8b7dd-pthkg   1/1     Running   0          30s
 
 kubectl get MutatingWebhookConfiguration
 NAME                               WEBHOOKS   AGE
@@ -153,12 +153,10 @@ kubectl get pods -n test-ns -o yaml | grep "pod-name\:\|memory\:"
 
 If the Monitoring node specs were not reduced, check followings:
 
-1. The webhook pods are in running state and no error in the logs:
+1. The webhook pod is in running state and no error in the logs:
 ```
 kubectl logs pod-modifier-webhook-deployment-d45f8b7dd-968gf -n solace-pod-modifier
 ```
-
-> Note: if multiple pods are running then requests are load balanced between them so you may need to check all pods logs
 
 2. The namespace in which the PubSub+ HA broker is deployed has the correct label (`pod-modifier.solace.com=enabled`) as configured in `MutatingWebhookConfiguration`.
 
