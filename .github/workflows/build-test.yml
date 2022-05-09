@@ -184,5 +184,5 @@ jobs:
     - name: Delete test resources (Cleanup)
       if: ${{ always() }}
       run: |
-        #gcloud container clusters delete $TESTCLUSTERNAME --quiet --zone us-east4-a
-        #gcloud compute disks list | grep gha-test | sed 1d $rpt | while read -r a b c; do gcloud compute disks delete $a --zone $b --quiet; done
+        gcloud container clusters delete $TESTCLUSTERNAME --quiet --zone us-east4-a
+        gcloud compute disks list | grep gha-test | sed 1d $rpt | while read -r a b c; do gcloud compute disks delete $a --zone $b --quiet; done

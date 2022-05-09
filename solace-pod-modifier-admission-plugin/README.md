@@ -164,4 +164,8 @@ kubectl logs pod-modifier-webhook-deployment-d45f8b7dd-968gf -n solace-pod-modif
 * `pod-modifier.solace.com/inject: "true"`; and also
 * `pod-modifier.solace.com/modify.podDefinition: ...`
 
+4. Error message at Helm install or upgrade
+
+Generally, if encountered an error message about "failed calling webhook" at Helm install or upgrade, delete or rollback the Helm deployment just attempted without deleting related PVCs. Check above items are all in place and then retry it. 
+
 
