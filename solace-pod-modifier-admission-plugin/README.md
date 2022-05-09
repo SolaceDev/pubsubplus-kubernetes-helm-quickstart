@@ -48,8 +48,8 @@ The server is implemented as a Go language project in the `cmd` subdirectory:
 
 The Kubernetes deployment templates are provided in the `deploy` subdirectory:
 * `deploy/kustomization.yaml`: provides base configuration to be used by the Kustomize tool. "Kustomize" is a Kubernetes tool used to override template settings;
-* `deploy/deployment.yaml`: creates the webhook pod(s) from the webhook server container image;
-* `deploy/service.yaml`: defines the webhook service pointing to the webhook pods;
+* `deploy/deployment.yaml`: creates the webhook pod from the webhook server container image;
+* `deploy/service.yaml`: defines the webhook service pointing to the webhook pod;
 * `deploy/namespace.yaml`, `serviceaccount.yaml`, `clusterrole.yaml` and `clusterrolebinding.yaml` define a dedicated namespace and security settings for the deployment.
 
 `Dockerfile` provides the template to build the container image.
@@ -95,7 +95,7 @@ Deployment options:
 * Image pull secrets: if required, uncomment and edit in `deploy/deployment.yaml`
 * Namespace name: default is `solace-pod-modifier`, adjust in `deploy/kustomization.yaml`. *Important:* if using OpenShift, do not use the `default` namespace (project).
 
-4. Verify the webhook pods are up and running in the `solace-pod-modifier` namespace and the `MutatingWebhookConfiguration` object has been created:
+4. Verify the webhook pod is up and running in the `solace-pod-modifier` namespace and the `MutatingWebhookConfiguration` object has been created:
 
 ```bash
 kubectl get pods -n solace-pod-modifier
@@ -166,6 +166,6 @@ kubectl logs pod-modifier-webhook-deployment-d45f8b7dd-968gf -n solace-pod-modif
 
 4. Error message at Helm install or upgrade
 
-Generally, if encountered an error message about "failed calling webhook" at Helm install or upgrade, delete or rollback the Helm deployment just attempted without deleting related PVCs. Check above items are all in place and then retry it. 
+Generally, if encountered an error message about "failed calling webhook" at Helm install or upgrade then delete or rollback the Helm deployment just attempted without deleting related PVCs. Check above items are all in place and then retry it. 
 
 
