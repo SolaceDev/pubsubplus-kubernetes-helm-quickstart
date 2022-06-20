@@ -17,6 +17,7 @@ jobs:
       run: |
         echo "TESTCLUSTERNAME=k8s-gha-test-$(date +%s)" >> $GITHUB_ENV
         echo "TESTRUNBRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
+        echo "USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> $GITHUB_ENV
         #
         sudo gem update --system 3.0.6
         sudo gem install yaml-lint
