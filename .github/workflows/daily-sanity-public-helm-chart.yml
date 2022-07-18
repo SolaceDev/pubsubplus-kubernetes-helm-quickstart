@@ -24,7 +24,7 @@ jobs:
         kubectl version --client
 
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v0
+      uses: google-github-actions/setup-gcloud@v0.6.0
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
         service_account_key: ${{ secrets.GCP_SA_KEY }}
@@ -33,9 +33,12 @@ jobs:
     - name: Setup test env
       run: |
         # Setup K8s env in GKE
+        gcloud components install gke-gcloud-auth-plugin --quiet
+        gcloud components update
+        export USE_GKE_GCLOUD_AUTH_PLUGIN=True
         wget https://raw.githubusercontent.com/SolaceProducts/solace-gke-quickstart/master/scripts/create_cluster.sh
         chmod +x create_cluster.sh
-        ./create_cluster.sh -z us-east4-a,us-east4-b,us-east4-c -c $TESTCLUSTERNAME -m e2-standard-2
+        ./create_cluster.sh -z us-east4-a,us-east4-b,us-east4-c -c $TESTCLUSTERNAME -m e2-standard-4
         gcloud container clusters get-credentials $TESTCLUSTERNAME --zone us-east4-a --project capable-stream-180018
         kubectl get statefulset,svc,pods,pvc,pv
         # setup Helm 3
