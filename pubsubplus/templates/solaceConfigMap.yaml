@@ -278,7 +278,6 @@ data:
     set_label () {
       # Params: $1 label name, $2 label set value
       #Prevent overdriving Kubernetes infra, don't set activity state to same as previous state
-      echo "`date` INFO: ${APP}-Changing pod label '$1' to $2"
       previous_state=$(get_label "active")
       if [ "${2}" = "${previous_state}" ]; then
         #echo "`date` INFO: ${APP}-Current and Previous state match (${2}), not updating pod label"
@@ -375,6 +374,7 @@ data:
           echo "`date` INFO: ${APP}-HA Event Broker health check reported 200, message spool is up"
           touch ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}
           echo "`date` INFO: ${APP}-Server status check complete for this broker node"
+          echo "`date` INFO: ${APP}-Changing pod label to active"
           exit 1
         fi
         set_label "active" "true"
@@ -388,6 +388,7 @@ data:
       *)
         echo "`date` WARN: ${APP}-HA Event Broker health check reported unexpected ${health_result}"
         set_label "active" "false"
+        echo "`date` INFO: ${APP}-Changing pod label to inactive"
         rm -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}; exit 1
     esac
     # At this point analyzing readiness after health check returned 503 - checking if Event Broker is Standby
@@ -428,6 +429,7 @@ data:
           echo "`date` INFO: ${APP}-nonHA Event Broker health check reported 200, message spool is up"
           touch ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}
           echo "`date` INFO: ${APP}-Server status check complete for this broker node"
+          echo "`date` INFO: ${APP}-Changing pod label to active"
           exit 1
         fi
         set_label "active" "true"
@@ -436,12 +438,14 @@ data:
       "503")
         if [[ $(get_label "active") = "true" ]]; then echo "`date` INFO: ${APP}-nonHA Event Broker health check reported 503, message spool is down"; fi
         set_label "active" "false"
+        echo "`date` INFO: ${APP}-Changing pod label to inactive"
         # Fail readiness check
         rm -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}; exit 1
         ;;
       *)
         echo "`date` WARN: ${APP}-nonHA Event Broker health check reported ${health_result}"
         set_label "active" "false"
+        echo "`date` INFO: ${APP}-Changing pod label to inactive"
         # Fail readiness check
         rm -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}; exit 1
     esac
