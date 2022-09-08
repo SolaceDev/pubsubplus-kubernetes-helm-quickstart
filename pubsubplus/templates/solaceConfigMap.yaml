@@ -264,7 +264,9 @@ data:
     #!/bin/bash
     APP=`basename "$0"`
     LOG_FILE=/usr/sw/var/k8s_readiness_check.log # STDOUT/STDERR goes to k8s event logs but gets cleaned out eventually. This will also persist it.
-    tail -n 1000 ${LOG_FILE} > ${LOG_FILE}.tmp; mv -f ${LOG_FILE}.tmp ${LOG_FILE} || :  # Limit logs size
+    if [ -f ${LOG_FILE} ] ; then
+        tail -n 1000 ${LOG_FILE} > ${LOG_FILE}.tmp; mv -f ${LOG_FILE}.tmp ${LOG_FILE} || :  # Limit logs size
+    fi
     exec > >(tee -a ${LOG_FILE}) 2>&1 # Setup logging
     FINAL_ACTIVITY_LOGGED_TRACKING_FILE=/tmp/final_activity_state_logged
 
