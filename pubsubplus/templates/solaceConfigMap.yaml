@@ -357,6 +357,7 @@ data:
         if [ ! -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE} ]; then
           echo "`date` INFO: ${APP}-All nodes online, monitor node is redundancy ready"
           touch ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}
+          echo "`date` INFO: ${APP}-Server status check complete for this broker node"
           exit 1
         fi
         exit 0
@@ -372,6 +373,7 @@ data:
         if [ ! -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE} ]; then
           echo "`date` INFO: ${APP}-HA Event Broker health check reported 200, message spool is up"
           touch ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}
+          echo "`date` INFO: ${APP}-Server status check complete for this broker node"
           exit 1
         fi
         set_label "active" "true"
@@ -406,6 +408,7 @@ data:
         if [ ! -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE} ]; then
           echo "`date` INFO: ${APP}-Redundancy is up and node is mate Active"
           touch ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}
+          echo "`date` INFO: ${APP}-Server status check complete for this broker node"
           exit 1
         fi
         exit 0
@@ -423,6 +426,7 @@ data:
         if [ ! -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE} ]; then
           echo "`date` INFO: ${APP}-nonHA Event Broker health check reported 200, message spool is up"
           touch ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}
+          echo "`date` INFO: ${APP}-Server status check complete for this broker node"
           exit 1
         fi
         set_label "active" "true"
