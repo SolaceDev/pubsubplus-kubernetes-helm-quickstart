@@ -278,7 +278,7 @@ data:
     set_label () {
       # Params: $1 label name, $2 label set value
       #Prevent overdriving Kubernetes infra, don't set activity state to same as previous state
-      echo "`date` INFO: ${APP}-Changing pod label to $2"
+      echo "`date` INFO: ${APP}-Changing pod label '$1' to $2"
       previous_state=$(get_label "active")
       if [ "${2}" = "${previous_state}" ]; then
         #echo "`date` INFO: ${APP}-Current and Previous state match (${2}), not updating pod label"
