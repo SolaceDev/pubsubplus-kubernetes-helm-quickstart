@@ -15,7 +15,7 @@ spec:
       app.kubernetes.io/instance: {{ .Release.Name }}
       node-type: message-routing-primary
   serviceName: {{ template "solace.fullname" . }}-discovery
-  replicas: {{- if .Values.solace.redundancy }} 1 {{- else }} 0 {{- end }}
+  replicas: 1
   podManagementPolicy: Parallel
   updateStrategy: 
     type: OnDelete

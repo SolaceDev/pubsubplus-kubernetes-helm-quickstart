@@ -1,4 +1,5 @@
 # Create the StatefulSet needed for redundancy
+{{- if .Values.solace.redundancy }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -245,4 +246,5 @@ spec:
       resources:
         requests:
           storage: {{ .Values.storage.size}}
+{{- end }}
 {{- end }}
