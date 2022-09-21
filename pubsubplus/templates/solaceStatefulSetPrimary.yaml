@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ template "solace.fullname" . }}
+  name: {{ template "solace.fullname" . }}-p
   labels:
     app.kubernetes.io/name: {{ template "solace.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -13,16 +13,18 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ template "solace.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
+      node-type: message-routing-primary
   serviceName: {{ template "solace.fullname" . }}-discovery
-  replicas: {{- if .Values.solace.redundancy }} 3 {{- else }} 1 {{- end }}
+  replicas: {{- if .Values.solace.redundancy }} 1 {{- else }} 0 {{- end }}
   podManagementPolicy: Parallel
   updateStrategy: 
-    type: RollingUpdate
+    type: OnDelete
   template:
     metadata:
       labels:
         app.kubernetes.io/name: {{ template "solace.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        node-type: message-routing-primary
     spec:
 {{- if .Values.image.pullSecretName }}
       imagePullSecrets:
@@ -104,7 +106,7 @@ spec:
 {{- end }}
         env:
         - name: STATEFULSET_NAME
-          value: {{ template "solace.fullname" . }}
+          value: {{ template "solace.fullname" . }}-p
         - name: STATEFULSET_NAMESPACE
           valueFrom:
             fieldRef:

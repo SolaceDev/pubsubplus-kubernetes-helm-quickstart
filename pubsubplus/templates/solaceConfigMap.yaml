@@ -38,7 +38,10 @@ data:
     # https://github.com/kubernetes/kubernetes/issues/40651
     # node_ordinal=$(STATEFULSET_ORDINAL)
     IFS='-' read -ra host_array <<< $(hostname)
-    node_ordinal=${host_array[-1]}
+    # node_ordinal=${host_array[-1]}
+    # Separate Monitor node from main statefulset using -monitor in statefulset name suffix
+    is_monitor=$([ ${host_array[-2]} = "m" ] && echo 1 || echo 0)
+    is_backup=$([ ${host_array[-2]} = "b" ] && echo 1 || echo 0)
     if [[ ! -z `echo $STATEFULSET_NAMESPACE` ]]; then
       namespace=`echo $STATEFULSET_NAMESPACE`
     else
@@ -52,36 +55,41 @@ data:
     export configsync_enable=yes
     export redundancy_authentication_presharedkey_key=`cat /mnt/disks/secrets/username_admin_password | awk '{x=$0;for(i=length;i<51;i++)x=x "0";}END{print x}' | base64` # Right-pad with 0s to 50 length
     export service_redundancy_firstlistenport='8300'
-    export redundancy_group_node_${service_name}0_nodetype=message_routing
-    export redundancy_group_node_${service_name}0_connectvia=${service}-0.${service}-discovery.${namespace}.svc:${service_redundancy_firstlistenport}
-    export redundancy_group_node_${service_name}1_nodetype=message_routing
-    export redundancy_group_node_${service_name}1_connectvia=${service}-1.${service}-discovery.${namespace}.svc:${service_redundancy_firstlistenport}
-    export redundancy_group_node_${service_name}2_nodetype=monitoring
-    export redundancy_group_node_${service_name}2_connectvia=${service}-2.${service}-discovery.${namespace}.svc:${service_redundancy_firstlistenport}
+    export redundancy_group_node_${service_name}p0_nodetype=message_routing
+    export redundancy_group_node_${service_name}p0_connectvia=${service}-p-0.${service}-discovery.${namespace}.svc:${service_redundancy_firstlistenport}
+    export redundancy_group_node_${service_name}b0_nodetype=message_routing
+    export redundancy_group_node_${service_name}b0_connectvia=${service}-b-0.${service}-discovery.${namespace}.svc:${service_redundancy_firstlistenport}
+    export redundancy_group_node_${service_name}m0_nodetype=monitoring
+    export redundancy_group_node_${service_name}m0_connectvia=${service}-m-0.${service}-discovery.${namespace}.svc:${service_redundancy_firstlistenport}
 
-    case ${node_ordinal} in
-    0)
-      export nodetype=message_routing
-      export redundancy_matelink_connectvia=${service}-1.${service}-discovery.${namespace}.svc
-      export redundancy_activestandbyrole=primary
-      ;;
-    1)
-      export nodetype=message_routing
-      export redundancy_matelink_connectvia=${service}-0.${service}-discovery.${namespace}.svc
-      export redundancy_activestandbyrole=backup
-      ;;
-    2)
+    # Non Monitor Nodes
+    if [ "${is_monitor}" = "0" ]; then
+      case ${is_backup} in
+      0)
+        export nodetype=message_routing
+        export redundancy_matelink_connectvia=${service}-b-0.${service}-discovery.${namespace}.svc
+        export redundancy_activestandbyrole=primary
+        ;;
+      1)
+        export nodetype=message_routing
+        export redundancy_matelink_connectvia=${service}-p-0.${service}-discovery.${namespace}.svc
+        export redundancy_activestandbyrole=backup
+        ;;
+      esac
+    else
       export nodetype=monitoring
-      ;;
-    esac
+    fi
 {{- end }}
 
   startup-broker.sh: |-
     #!/bin/bash
     APP=`basename "$0"`
     IFS='-' read -ra host_array <<< $(hostname)
-    node_ordinal=${host_array[-1]}
-    echo "`date` INFO: ${APP}-Node ordinal: ${node_ordinal}"
+    # node_ordinal=${host_array[-1]}
+    is_monitor=$([ ${host_array[-2]} = "m" ] && echo 1 || echo 0)
+    is_backup=$([ ${host_array[-2]} = "b" ] && echo 1 || echo 0)
+    echo "`date` INFO: ${APP}-Monitor: ${is_monitor}"
+    echo "`date` INFO: ${APP}-Backup: ${is_backup}"
     echo "`date` INFO: ${APP}-Waiting for management API to become available"
     password=`cat /mnt/disks/secrets/username_admin_password`
     loop_guard=60
@@ -113,7 +121,7 @@ data:
 {{- end }}
 {{- if .Values.solace.redundancy }}
     # for non-monitor nodes setup redundancy and config-sync
-    if [ "${node_ordinal}" != "2" ]; then
+    if [ "${is_monitor}" = "0" ]; then
       resync_step=""
       role=""
       count=0
@@ -304,7 +312,9 @@ data:
 {{- if .Values.solace.redundancy }}
     # HA config
     IFS='-' read -ra host_array <<< $(hostname)
-    node_ordinal=${host_array[-1]}
+    is_monitor=$([ ${host_array[-2]} = "m" ] && echo 1 || echo 0)
+    is_backup=$([ ${host_array[-2]} = "b" ] && echo 1 || echo 0)
+    # node_ordinal=${host_array[-1]}
     password=`cat /mnt/disks/secrets/username_admin_password`
 
     # For update (includes SolOS upgrade) purposes, additional checks are required for readiness state when the pod has been started
@@ -322,7 +332,7 @@ data:
         rm -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}; exit 1
       fi
       # Additionally check config-sync status for non-monitoring nodes
-      if [ "${node_ordinal}" != "2" ]; then
+      if [ "${is_monitor}" = "0" ]; then
         results=`/mnt/disks/solace/semp_query.sh -n admin -p ${password} -u http://localhost:8080 \
                 -q "<rpc><show><config-sync></config-sync></show></rpc>" \
                 -v "/rpc-reply/rpc/show/config-sync/status/oper-status"`
@@ -336,7 +346,7 @@ data:
     # Record current version in LASTVERSION_FILE
     echo $(get_label "controller-revision-hash") > ${LASTVERSION_FILE}
     # For monitor node just check for 3 online nodes in group; active label will never be set
-    if [ "${node_ordinal}" = "2" ]; then
+    if [ "${is_monitor}" = "1" ]; then
       role_results=`/mnt/disks/solace/semp_query.sh -n admin -p ${password} -u http://localhost:8080 \
               -q "<rpc><show><redundancy><group/></redundancy></show></rpc>" \
               -c "/rpc-reply/rpc/show/redundancy/group-node/status[text() = \"Online\"]"`
@@ -356,7 +366,7 @@ data:
         echo "`date` INFO: ${APP}-Monitor node is not redundancy ready, ${nodes_online} of 3 nodes online"
         rm -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}; exit 1
       fi
-    fi # End Monitor Node
+    fi # End Monitor Node, above branch has exited with result
     # For Primary or Backup nodes set both service readiness (active label) and k8s readiness (exit return value)
     health_result=`curl -s -o /dev/null -w "%{http_code}"  http://localhost:5550/health-check/guaranteed-active`
     case "${health_result}" in
@@ -379,7 +389,7 @@ data:
         rm -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}; exit 1
     esac
     # At this point analyzing readiness after health check returned 503 - checking if Event Broker is Standby
-    case "${node_ordinal}" in
+    case "${is_backup}" in
       "0")
         config_role="primary"
         ;;
