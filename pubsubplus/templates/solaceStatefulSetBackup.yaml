@@ -116,6 +116,20 @@ spec:
           value: {{ printf "%s/%s" ":/usr/share/zoneinfo" (default "UTC" .Values.solace.timezone) }}
         - name: UMASK
           value: "0022"
+        - name: BROKER_MAXCONNECTIONCOUNT
+{{- if .Values.solace.systemScaling }}
+          value: {{ required "A valid maxConnections required!" .Values.solace.systemScaling.maxConnections | quote }}
+{{- else }}
+          value: "100"
+{{- end }}
+        - name: BROKER_TLS_ENEBLED
+{{- if and (.Values.tls) (.Values.tls.enabled) }}
+          value: "true"
+{{- else }}
+          value: "false"
+{{- end }}
+        - name: BROKER_REDUNDANCY
+          value: "true"
 {{- if .Values.solace.extraEnvVars }}
       {{- range $item := .Values.solace.extraEnvVars }}
         - name: {{ $item.name }}
