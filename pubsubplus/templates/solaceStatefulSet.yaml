@@ -104,6 +104,7 @@ spec:
         readinessProbe:
           initialDelaySeconds: 30
           periodSeconds: 5
+          timeoutSeconds: 5
           exec:
             command:
             - /mnt/disks/solace/readiness_check.sh

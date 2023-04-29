@@ -315,6 +315,48 @@ data:
       fi
     }
 
+     # Function to get local sync state
+     get_router_local_config_state() {
+      # Params: $1 is property of config to return for router
+      routerresults=`/mnt/disks/solace/semp_query.sh -n admin -p ${password} -u http://localhost:8080 \
+                -q "<rpc><show><config-sync><database/><router/><detail/></config-sync></show></rpc>" \
+                -v "/rpc-reply/rpc/show/config-sync/database/local/tables/table[1]/${1}"`
+
+      routerlocalsync_result=`echo ${routerresults} | xmllint -xpath "string(returnInfo/valueSearchResult)" -`
+      echo $routerlocalsync_result
+     }
+
+    # Function to get remote sync state
+    get_router_remote_config_state() {
+      # Params: $1 is property of config to return for router
+      routerresults=`/mnt/disks/solace/semp_query.sh -n admin -p ${password} -u http://localhost:8080 \
+                -q "<rpc><show><config-sync><database/><router/><remote/></config-sync></show></rpc>" \
+                -v "/rpc-reply/rpc/show/config-sync/database/remote/tables/table[1]/source-router/${1}"`
+      routerremotesync_result=`echo ${routerresults} | xmllint -xpath "string(returnInfo/valueSearchResult)" -`
+      echo $routerremotesync_result
+    }
+
+    # Function to get local sync state
+     get_local_config_state() {
+      # Params: $1 index of the local item's sync-state to return $2 is property of config to return
+      messagevpnresults=`/mnt/disks/solace/semp_query.sh -n admin -p ${password} -u http://localhost:8080 \
+                -q "<rpc><show><config-sync><database/><detail/></config-sync></show></rpc>" \
+                -v "/rpc-reply/rpc/show/config-sync/database/local/tables/table[${1}]/${2}"`
+
+      messagevpnlocalsync_result=`echo ${messagevpnresults} | xmllint -xpath "string(returnInfo/valueSearchResult)" -`
+      echo $messagevpnlocalsync_result
+     }
+
+    # Function to get remote sync state
+    get_remote_config_state() {
+      # Params: $1 index of the remote item's sync-state to return, $2 is the ha mate to filter with, $3 is property of config to return
+      messagevpnresults=`/mnt/disks/solace/semp_query.sh -n admin -p ${password} -u http://localhost:8080 \
+                -q "<rpc><show><config-sync><database/><remote/></config-sync></show></rpc>" \
+                -v "/rpc-reply/rpc/show/config-sync/database/remote/tables/table[${1}]/source-router[name='${2}']/${3}"`
+      messagevpnremotesync_result=`echo ${messagevpnresults} | xmllint -xpath "string(returnInfo/valueSearchResult)" -`
+      echo $messagevpnremotesync_result
+    }
+
     # Main logic: note that there are no re-tries here, if check fails then return not ready.
 {{- if .Values.solace.redundancy }}
     # HA config
@@ -428,8 +470,54 @@ data:
                   -v "/rpc-reply/rpc/show/config-sync/status/oper-status"`
           confsyncstatus_results=`echo ${results} | xmllint -xpath "string(returnInfo/valueSearchResult)" -`
           if [ "${confsyncstatus_results}" != "Up" ]; then
-            echo "`date` INFO: ${APP}-Running checks. Config-sync state is not yet up."
-            rm -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}; exit 1
+
+            # Additional check to confirm config-sync
+            echo "`date` INFO: ${APP}-Checking Config-sync Setup. Local router table state check starting..."
+
+            routerlocalsync_result=$(get_router_local_config_state "sync-state")
+
+            if [ "${routerlocalsync_result}" != "In-Sync" ]; then
+              echo "`date` INFO: ${APP}-Config-sync state is not in-sync locally."
+              rm -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}; exit 1
+            fi
+
+            echo "`date` INFO: ${APP}-Checking Config-sync Setup. Remote router table state check starting..."
+
+            routerremotesync_result=$(get_router_remote_config_state "sync-state")
+            routerremotestale_result=$(get_router_remote_config_state "stale")
+
+            if [[ "${routerremotesync_result}" != "In-Sync" || "${routerremotestale_result}" != "No" ]]; then
+              echo "`date` INFO: ${APP}-Config-sync state not in-sync for remote."
+              rm -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}; exit 1
+            fi
+
+            # Additional check to confirm config-sync on vpns
+            echo "`date` INFO: ${APP}-Checking Config-sync Setup. Local message-vpn state check starting..."
+            messagevpn_result=`/mnt/disks/solace/semp_query.sh -n admin -p ${password} -u http://localhost:8080 \
+                  -q "<rpc><show><config-sync><database/><detail/></config-sync></show></rpc>" \
+                  -v "count(/rpc-reply/rpc/show/config-sync/database/local/tables/table)"`
+            messagevpn_total=`echo ${messagevpn_result} | xmllint -xpath "string(returnInfo/valueSearchResult)" -`
+            for ((messagevpn_counter = 2;messagevpn_counter <= $messagevpn_total; messagevpn_counter++)); # Start from 2 so as to skip Router
+            do
+                vpnlocalsync_result=$(get_local_config_state $messagevpn_counter "sync-state") # Router is always the first
+                if [ "${vpnlocalsync_result}" != "In-Sync" ]; then
+                  echo "`date` INFO: ${APP}-Config-sync state is not in-sync locally."
+                  rm -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}; exit 1
+                fi
+            done
+
+            vpnremotehamate_result=$(get_router_remote_config_state "name")
+            echo "`date` INFO: ${APP}-Checking Config-sync Setup. Remote message-vpn state check starting..."
+            for ((messagevpn_counter = 2;messagevpn_counter <= $messagevpn_total; messagevpn_counter++)); # Start from 2 so as to skip Router
+            do
+                vpnremotesync_result=$(get_remote_config_state $messagevpn_counter $vpnremotehamate_result "sync-state")
+                vpnremotestale_result=$(get_remote_config_state $messagevpn_counter $vpnremotehamate_result "stale")
+
+                if [[ "${vpnremotesync_result}" != "In-Sync" || "${vpnremotestale_result}" != "No" ]]; then
+                  echo "`date` INFO: ${APP}-Config-sync state is not in-sync for remote."
+                  rm -f ${FINAL_ACTIVITY_LOGGED_TRACKING_FILE}; exit 1
+                fi
+            done
           fi
         fi
         # Pass readiness check
