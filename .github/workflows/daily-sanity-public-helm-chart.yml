@@ -84,7 +84,7 @@ jobs:
         }
         #
         # test charts
-        helm repo add solacecharts https://solaceproducts.github.io/pubsubplus-kubernetes-quickstart/helm-charts
+        helm repo add solacecharts https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/helm-charts
         helm repo list
         testDeployHelmv3 pubsubplus-dev
         testDeployHelmv3 pubsubplus
