@@ -598,7 +598,7 @@ data:
         echo  '<returnInfo><errorInfo>missing parameter</errorInfo></returnInfo>'
         exit 1
       fi
-      if [ "`curl --write-out '%{http_code}' --silent --output /dev/null -u ${username}:${password} ${url}/SEMP`" != "200" ] ; then
+      if [ "`curl --write-out '%{http_code}' --silent --output /dev/null -u ${username}:${password} ${url}/SEMP -d '<rpc><show><version/></show></rpc>'`" != "200" ] ; then
         echo  "<returnInfo><errorInfo>management host is not responding</errorInfo></returnInfo>"
         exit 1
       fi
@@ -607,7 +607,7 @@ data:
       fi
       query_response=`curl -sS -u ${username}:${password} ${url}/SEMP -d "${query}"`
       # Validate first char of response is "<", otherwise no hope of being valid xml
-      if [[ ${query_response:0:1} != "<" ]] ; then 
+      if [[ ${query_response:0:1} != "<" ]] ; then
         echo  "<returnInfo><errorInfo>no valid xml returned</errorInfo></returnInfo>"
         exit 1
       fi

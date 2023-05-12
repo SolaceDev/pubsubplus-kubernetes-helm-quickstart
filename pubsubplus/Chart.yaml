@@ -11,7 +11,7 @@ maintainers:
     url: https://solace.com/support/
 home: https://dev.solace.com
 sources:
-  - https://github.com/SolaceProducts/pubsubplus-kubernetes-quickstart
+  - https://github.com/SolaceProducts/pubsubplus-kubernetes-helm-quickstart
 keywords:
 - solace
 - pubsubplus
