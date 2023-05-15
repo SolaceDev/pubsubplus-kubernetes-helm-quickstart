@@ -168,7 +168,7 @@ data:
             echo "`date` INFO: ${APP}-Node activity status is Local Active, after ${run_time} seconds"
             # We should only be here on new cluster create, if not this is an indication of unexpected HA procedures
             if [[ ! -e ${INITIAL_STARTUP_FILE} ]]; then
-                # Need to issue assert master to get back into sync only one time when the PubSub+ Event Broker starts the first time
+                # Need to issue assert leader to get back into sync only one time when the PubSub+ Event Broker starts the first time
                 echo "`date` INFO: ${APP}-Broker initial startup detected. This node will assert config-sync configuration over its mate"
                 resync_step_required="true"
             else
@@ -189,7 +189,7 @@ data:
         echo "`date` ERROR: ${APP}-Local activity state never become Local Active or Mate Active"  >&2
         exit 1 
       fi
-      # If we need to assert master, then we need to wait for mate to reconcile
+      # If we need to assert leader, then we need to wait for mate to reconcile
       if [ "${resync_step_required}" = "true" ]; then
         count=0
         echo "`date` INFO: ${APP}-Waiting for mate activity state to be 'Standby'"
@@ -213,7 +213,7 @@ data:
           echo "`date` ERROR: ${APP}-Mate not in sync, never reached Standby" >&2
           exit 1 
         fi
-      fi # if assert-master
+      fi # if assert-leader
       # Ensure Config-sync connection state is Connected before proceeding
       count=0
       echo "`date` INFO: ${APP}-Waiting for config-sync connected"
@@ -237,13 +237,13 @@ data:
         echo "`date` ERROR: ${APP}-Config-sync connection state never reached Connected" >&2
         exit 1
       fi
-      # Now can issue assert-master command
+      # Now can issue assert-leader command
       if [ "${resync_step_required}" = "true" ]; then
-          echo "`date` INFO: ${APP}-Initiating assert-master"
+          echo "`date` INFO: ${APP}-Initiating assert-leader"
           /mnt/disks/solace/semp_query.sh -n admin -p ${password} -u http://localhost:8080 \
-                -q "<rpc semp-version=\"soltr/9_8VMR\"><admin><config-sync><assert-master><router/></assert-master></config-sync></admin></rpc>"
+                -q "<rpc><admin><config-sync><assert-leader><router/></assert-leader></config-sync></admin></rpc>"
           /mnt/disks/solace/semp_query.sh -n admin -p ${password} -u http://localhost:8080 \
-                -q "<rpc semp-version=\"soltr/9_8VMR\"><admin><config-sync><assert-master><vpn-name>*</vpn-name></assert-master></config-sync></admin></rpc>"
+                -q "<rpc><admin><config-sync><assert-leader><vpn-name>*</vpn-name></assert-leader></config-sync></admin></rpc>"
       fi
       # Wait for config-sync results
       count=0
