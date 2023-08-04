@@ -80,11 +80,6 @@ data:
   startup-broker.sh: |-
     #!/bin/bash
     APP=`basename "$0"`
-    LOG_FILE=/usr/sw/var/k8s_startup-broker.log # STDOUT/STDERR goes to k8s logs but will nor survive pod. This will also persist it.
-    if [ -f ${LOG_FILE} ] ; then
-        tail -n 1000 ${LOG_FILE} > ${LOG_FILE}.tmp; mv -f ${LOG_FILE}.tmp ${LOG_FILE} || :  # Limit logs size
-    fi
-    exec > >(tee -a ${LOG_FILE}) 2>&1 # Setup logging
     IFS='-' read -ra host_array <<< $(hostname)
     node_ordinal=${host_array[-1]}
     echo "`date` INFO: ${APP}-Node ordinal: ${node_ordinal}"
