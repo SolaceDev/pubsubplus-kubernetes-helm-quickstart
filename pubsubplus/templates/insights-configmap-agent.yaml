@@ -29,7 +29,7 @@
   {{- fail "Service ID not specified" -}}
 {{- end -}}
 {{- if eq $serviceName "" -}}
-  {{- $serviceName = printf "service_%s" $serviceId -}}
+  {{- fail "Service name not specified" -}}
 {{- end -}}
 
 
