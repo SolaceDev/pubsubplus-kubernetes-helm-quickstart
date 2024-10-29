@@ -25,10 +25,10 @@
   {{- fail "Organization ID not specified" -}}
 {{- end -}}
 
-{{- if eq $serviceId "" -}}
+{{- if not $serviceId }}
   {{- fail "Service ID not specified" -}}
 {{- end -}}
-{{- if eq $serviceName "" -}}
+{{- if not $serviceName }}
   {{- fail "Service name not specified" -}}
 {{- end -}}
 
