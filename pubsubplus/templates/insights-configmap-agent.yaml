@@ -26,7 +26,7 @@
 {{- end -}}
 
 {{- if eq $serviceId "" -}}
-  {{- $serviceId = (randAlpha 6) -}}
+  {{- fail "Service ID not specified" -}}
 {{- end -}}
 {{- if eq $serviceName "" -}}
   {{- $serviceName = printf "service_%s" $serviceId -}}
