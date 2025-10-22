@@ -2,14 +2,13 @@ apiVersion: v1
 entries:
   pubsubplus-openshift:
   - annotations:
-      charts.openshift.io/name: PubSub+ Event Broker, non-HA
+      charts.openshift.io/name: Solace Event Broker, non-HA
     apiVersion: v2
-    created: "2025-07-31T14:27:17.424044017Z"
-    description: Deploy a single-node non-HA Solace PubSub+ Event Broker Software
-      on OpenShift
-    digest: 8cc4b2706ed2a818c109a3693344116693552df1639cbe475108f73be50cb9f4
+    created: "2025-10-22T19:19:12.770528131Z"
+    description: Deploy a single-node non-HA Solace Event Broker Software on OpenShift
+    digest: 48904c505b38a0af4c737358ce2a9bb1030282075d0506d09db8f82a8bc811b6
     home: https://dev.solace.com
-    icon: https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/images/PubSubPlus.png
+    icon: https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/images/solace.png
     keywords:
     - solace
     - pubsubplus
@@ -33,18 +32,18 @@ entries:
     sources:
     - https://github.com/SolaceProducts/pubsubplus-kubernetes-helm-quickstart
     urls:
-    - https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/helm-charts-openshift/pubsubplus-openshift-3.7.0.tgz
+    - https://solacedev.github.io/pubsubplus-kubernetes-helm-quickstart/helm-charts-openshift/pubsubplus-openshift-3.7.0.tgz
     version: 3.7.0
   pubsubplus-openshift-dev:
   - annotations:
-      charts.openshift.io/name: PubSub+ Event Broker for Developers
+      charts.openshift.io/name: Solace Event Broker for Developers
     apiVersion: v2
-    created: "2025-07-31T14:27:17.426358428Z"
-    description: Deploy a minimum footprint single-node non-HA Solace PubSub+ Event
-      Broker Software on OpenShift for development purposes
-    digest: 9691a19826714b7255fdae333a3aa9a7271c3c7f20f6b9eab1b4c48ce5c319af
+    created: "2025-10-22T19:19:12.771851164Z"
+    description: Deploy a minimum footprint single-node non-HA Solace Event Broker
+      Software on OpenShift for development purposes
+    digest: bc35e725bfa1fa1fd1f6b80eeb48b98e0c525af4c908e7b65c3d7d4eb5ef863a
     home: https://dev.solace.com
-    icon: https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/images/PubSubPlus.png
+    icon: https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/images/solace.png
     keywords:
     - solace
     - pubsubplus
@@ -68,18 +67,18 @@ entries:
     sources:
     - https://github.com/SolaceProducts/pubsubplus-kubernetes-helm-quickstart
     urls:
-    - https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/helm-charts-openshift/pubsubplus-openshift-dev-3.7.0.tgz
+    - https://solacedev.github.io/pubsubplus-kubernetes-helm-quickstart/helm-charts-openshift/pubsubplus-openshift-dev-3.7.0.tgz
     version: 3.7.0
   pubsubplus-openshift-ha:
   - annotations:
-      charts.openshift.io/name: PubSub+ Event Broker, HA
+      charts.openshift.io/name: Solace Event Broker, HA
     apiVersion: v2
-    created: "2025-07-31T14:27:17.427800841Z"
-    description: Deploy an HA redundancy group of Solace PubSub+ Event Broker Software
-      on OpenShift
-    digest: 2a0c2f77c6a19e96e711bb71767af23883fe0eba9e751138b885bb70f4996e88
+    created: "2025-10-22T19:19:12.773933019Z"
+    description: Deploy an HA redundancy group of Solace Event Broker Software on
+      OpenShift
+    digest: d962bbd23e36f0569fe6c17f3068e0883e06f9cfe5d280c3ebf4ed7d2a77cc12
     home: https://dev.solace.com
-    icon: https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/images/PubSubPlus.png
+    icon: https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/images/solace.png
     keywords:
     - solace
     - pubsubplus
@@ -103,6 +102,6 @@ entries:
     sources:
     - https://github.com/SolaceProducts/pubsubplus-kubernetes-helm-quickstart
     urls:
-    - https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/helm-charts-openshift/pubsubplus-openshift-ha-3.7.0.tgz
+    - https://solacedev.github.io/pubsubplus-kubernetes-helm-quickstart/helm-charts-openshift/pubsubplus-openshift-ha-3.7.0.tgz
     version: 3.7.0
-generated: "2025-07-31T14:27:17.415641552Z"
+generated: "2025-10-22T19:19:12.768951324Z"
