@@ -157,6 +157,10 @@
                 "usernameAdminPassword": {
                     "type": ["string", "null"]
                 },
+                "usernameAdminPasswordSecretName": {
+                    "type": ["string", "null"],
+                    "description": "The name of an existing Kubernetes secret containing the admin password."
+                },
                 "affinity": {
                     "$ref": "#/definitions/io.k8s.api.core.v1.Affinity",
                     "description": "If specified, the PubSubPlus+ STS scheduling constraints"

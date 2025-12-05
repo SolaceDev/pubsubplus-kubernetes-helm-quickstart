@@ -133,6 +133,13 @@ spec:
           value: {{ printf "%s/%s" ":/usr/share/zoneinfo" (default "UTC" .Values.solace.timezone) }}
         - name: UMASK
           value: "0022"
+{{- if .Values.solace.usernameAdminPasswordSecretName }}
+        - name: EXTERNAL_USER_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.solace.usernameAdminPasswordSecretName }}
+              key: username_admin_password
+{{- end }}
 {{- if .Values.solace.systemScaling }}
 {{- if hasKey .Values.solace.systemScaling "maxKafkaBridgeCount" }}
         - name: SYSTEM_SCALING_MAXKAFKABRIDGECOUNT
@@ -302,7 +309,7 @@ spec:
             defaultMode: 0755
         - name: admin-secrets
           secret:
-            secretName: {{ template "solace.fullname" . }}-secrets
+            secretName: {{ if .Values.solace.usernameAdminPasswordSecretName }}{{ .Values.solace.usernameAdminPasswordSecretName }}{{ else }}{{ template "solace.fullname" . }}-secrets{{ end }}
             defaultMode: 0400
         {{- if .Values.insights.enabled }}
         - name: insights-secrets
