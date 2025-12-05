@@ -60,7 +60,14 @@ solace:
   #  obtain the generated password and provide it for each upgrade. 
   # Obtain the generated password from the deployment using
   #   kubectl get secret <release-name>-solace-secrets -o jsonpath="{.data.username_admin_password}" | base64 --decode
+  # Note: This method passes the password as plain text in values.yaml, which is not recommended for production.
   usernameAdminPassword:
+
+  # solace.usernameAdminPasswordSecretName specifies the name of an existing Kubernetes secret containing the admin password.
+  # This is the recommended approach for production environments to avoid storing passwords in plain text.
+  # If specified, this takes precedence over usernameAdminPassword.
+  # The secret must contain a key named 'username_admin_password' with the admin password.
+  # usernameAdminPasswordSecretName:
 
   # solace.timezone setting for the Solace Event Broker container, if undefined default is UTC. Valid values are tz database time zone names.
   # timezone: UTC
