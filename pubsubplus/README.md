@@ -89,6 +89,149 @@ helm install my-release \
 
 For more ways to override default chart values, refer to [Customizing the Helm Chart Before Installing](//helm.sh/docs/intro/using_helm/#customizing-the-chart-before-installing).
 
+### Image Registry Configuration
+
+For enterprise deployments using private registries or multi-region deployments, you can specify the container registry separately from the repository path:
+
+```bash
+helm install my-release \
+  --set image.registry=harbor.company.com \
+  --set image.repository=team/solace-pubsub-standard \
+  solacecharts/pubsubplus
+```
+
+This is particularly useful for:
+- Air-gapped environments with local registries
+- Enterprise registries with hierarchical paths (Harbor, JFrog Artifactory)
+- Multi-region deployments with region-specific registries
+
+### External Secrets Integration
+
+The chart supports integration with external secret management systems via the `extraEnvVars` parameter with `valueFrom` support:
+
+```yaml
+solace:
+  extraEnvVars:
+    # From Kubernetes secret
+    - name: PRODUCT_KEY
+      valueFrom:
+        secretKeyRef:
+          name: solace-product-key
+          key: key
+
+    # From ConfigMap
+    - name: CONFIG_DATA
+      valueFrom:
+        configMapKeyRef:
+          name: app-config
+          key: setting
+```
+
+This enables integration with:
+- External Secrets Operator (Vault, AWS Secrets Manager, Azure Key Vault)
+- Native Kubernetes secrets
+- ConfigMaps
+- Pod metadata via downward API
+
+**Example: Using External Secrets Operator with Vault**
+
+```yaml
+# Create an ExternalSecret that syncs from Vault
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: solace-product-key
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: vault-backend
+    kind: SecretStore
+  target:
+    name: solace-product-key
+    creationPolicy: Owner
+  data:
+    - secretKey: productkey
+      remoteRef:
+        key: solace/product-key
+        property: key
+---
+# Install the chart referencing the synced secret
+# values.yaml:
+solace:
+  extraEnvVars:
+    - name: productkey
+      valueFrom:
+        secretKeyRef:
+          name: solace-product-key
+          key: productkey
+```
+
+### Ingress Setup
+
+To expose the broker management UI or messaging ports via Kubernetes Ingress, create an Ingress resource separately from the chart. Ingress is useful for HTTP-based protocols (SEMP, REST, Web Messaging) but not for TCP protocols (SMF, MQTT-TCP, AMQP-TCP).
+
+**Example: SEMP Management UI Ingress**
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: solace-broker-management
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: broker-mgmt.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: my-release-pubsubplus  # Match your Helm release name
+                port:
+                  number: 8080  # SEMP port
+  tls:
+    - secretName: broker-mgmt-tls
+      hosts:
+        - broker-mgmt.example.com
+```
+
+**Example: REST Messaging Ingress**
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: solace-broker-rest
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: broker-rest.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: my-release-pubsubplus  # Match your Helm release name
+                port:
+                  number: 9000  # REST port
+  tls:
+    - secretName: broker-rest-tls
+      hosts:
+        - broker-rest.example.com
+```
+
+**Note:** For TCP protocols (SMF, MQTT, AMQP), use the chart's built-in LoadBalancer service configuration.
+
+## Configuration Parameters
+
 | Parameter                      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Default                                                                         |
 | ------------------------------ |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
 | `nameOverride`                 | Kubernetes objects will be named as `<release-name>-nameOverride`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Undefined, default naming is `<release-name>-<chart-name>`                      |
@@ -101,9 +244,10 @@ For more ways to override default chart values, refer to [Customizing the Helm C
 | `solace.usernameAdminPassword` | The password for the "admin" management user. The password will autogenerate it if not provided. Important: see `helm status` for information on how to retrieve the password and use it for `helm upgrade`. Note: This method passes the password as plain text in the values.yaml file, which is not recommended for production.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Undefined, meaning autogenerate                                                 |
 | `solace.usernameAdminPasswordSecretName` | The name of an existing Kubernetes secret containing the admin password. This is the recommended approach for production environments to avoid storing passwords in plain text. If specified, this takes precedence over usernameAdminPassword.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Undefined                                                 |
 | `solace.timezone`              | The timezone setting for the Solace container. The valid values are tz database time zone names.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Undefined, default is UTC                                                       |
-| `solace.extraEnvVars`              | The list of extra environment variables to be added to the Solace Event Broker container. A primary use case is to specify [configuration keys](https://docs.solace.com/Software-Broker/Configuration-Keys-Reference.htm). Important: env variables defined here will not override the ones defined in solaceConfigMap.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Undefined                                                                       |
+| `solace.extraEnvVars`              | The list of extra environment variables to be added to the Solace Event Broker container. Supports both literal `value` and `valueFrom` for external secrets. A primary use case is to specify [configuration keys](https://docs.solace.com/Software-Broker/Configuration-Keys-Reference.htm). Important: env variables defined here will not override the ones defined in solaceConfigMap.                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Undefined                                                                       |
 | `solace.extraEnvVarsCM`              | The name of an existing ConfigMap containing extra environment variables                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Undefined                                                                       |
 | `solace.extraEnvVarsSecret`              | The name of an existing Secret containing extra environment variables (in case of sensitive data)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Undefined                                                                       |
+| `image.registry`               | Optional container registry to prepend to repository. If empty, repository is used as-is (backward compatible). Useful for enterprise registries, air-gapped environments, and multi-region deployments.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | `""` (empty, backward compatible)                                               |
 | `image.repository`             | The image repo name and path to the Solace Event Broker container image                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | `solace/solace-pubsub-standard`                                                 |
 | `image.tag`                    | The Solace Event Broker container image tag. It is recommended to specify an explicit tag for production use For possible tags, refer to the [Solace Docker Hub repo](https://hub.docker.com/r/solace/solace-pubsub-standard/tags)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | `latest`                                                                        |
 | `image.pullPolicy`             | Image pull policy                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | `IfNotPresent`                                                                  |
