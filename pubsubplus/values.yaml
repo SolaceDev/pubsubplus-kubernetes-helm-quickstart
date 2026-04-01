@@ -76,9 +76,47 @@ solace:
   # Important: env variables defined here will not override the ones defined in solaceConfigMap
   # A primary use case is to specify configuration keys (Note that configuration keys are only evaluated upon initial startup)
   #  refer to: https://docs.solace.com/Configuring-and-Managing/SW-Broker-Specific-Config/Docker-Tasks/Config-SW-Broker-Container-Cfg-Keys.htm
+  #
+  # Supports both literal values and valueFrom for external secrets integration
   #extraEnvVars:
-  #  - name: env_variable_name
-  #    value: "env_variable_value"
+  #  # Literal value (existing usage):
+  #  - name: MY_CONFIG
+  #    value: "some-value"
+  #
+  #  # From Kubernetes secret (requires secret to exist):
+  #  - name: PRODUCT_KEY
+  #    valueFrom:
+  #      secretKeyRef:
+  #        name: solace-product-key
+  #        key: key
+  #
+  #  # From external secret (requires External Secrets Operator):
+  #  - name: DB_PASSWORD
+  #    valueFrom:
+  #      secretKeyRef:
+  #        name: external-secret  # Created by ExternalSecret resource
+  #        key: password
+  #
+  #  # From ConfigMap:
+  #  - name: CONFIG_DATA
+  #    valueFrom:
+  #      configMapKeyRef:
+  #        name: app-config
+  #        key: setting
+  #
+  #  # From pod metadata (downward API):
+  #  - name: POD_NAME
+  #    valueFrom:
+  #      fieldRef:
+  #        fieldPath: metadata.name
+  #  - name: POD_IP
+  #    valueFrom:
+  #      fieldRef:
+  #        fieldPath: status.podIP
+  #  - name: POD_NAMESPACE
+  #    valueFrom:
+  #      fieldRef:
+  #        fieldPath: metadata.namespace
 
   # solace.extraEnvVarsCM specifies the name of existing ConfigMap containing extra environment variables
   #extraEnvVarsCM: ""
@@ -111,6 +149,13 @@ solace:
   tolerations: []
 
 image:
+  # Optional: Specify registry separately for multi-environment deployments
+  # If empty, 'repository' is used as-is (backward compatible)
+  # Examples:
+  #   Air-gapped: registry: private-registry.company.com
+  #   Harbor: registry: harbor.company.com/team
+  #   Multi-region: registry: us-west.registry.com
+  registry: ""
   # Default repository
   repository: solace/solace-pubsub-standard
   # Recommending to use a specific version tag for production
@@ -131,6 +176,12 @@ securityContext:
   fsGroup: 1000002
   # runAsUser: expecting a number
   runAsUser: 1000001
+
+  # Advanced: Override pod-level security context if needed
+  podSecurityContext: {}
+
+  # Advanced: Override container-level security context if needed
+  containerSecurityContext: {}
 
 # enableServiceLinks indicates whether information about services should be injected into pod's environment variables, matching the syntax of Docker links. Optional: Defaults to false.
 enableServiceLinks: false
@@ -278,6 +329,9 @@ insights:
     INSIGHTS_AGENT_TAGS: ""
 
   image:
+    # Optional: Specify registry separately for multi-environment deployments
+    # If empty, 'repository' is used as-is (backward compatible)
+    registry: ""
     # Image repository for the Insights Agent container
     repository: gcr.io/gcp-maas-prod/solace-insights-agent
     # Image tag for the Insights Agent container

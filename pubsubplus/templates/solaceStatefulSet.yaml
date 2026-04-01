@@ -4,15 +4,11 @@ kind: StatefulSet
 metadata:
   name: {{ template "solace.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ template "solace.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    {{- include "solace.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ template "solace.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- include "solace.selectorLabels" . | nindent 6 }}
   serviceName: {{ template "solace.fullname" . }}-discovery
   replicas: {{- if .Values.solace.redundancy }} 3 {{- else }} 1 {{- end }}
   podManagementPolicy: Parallel
@@ -48,16 +44,21 @@ spec:
 {{- end}}
 {{- if .Values.securityContext.enabled }}
       securityContext:
+        {{- if .Values.securityContext.podSecurityContext }}
+        {{- toYaml .Values.securityContext.podSecurityContext | nindent 8 }}
+        {{- else }}
+        # Backward compatible defaults
         fsGroup: {{ .Values.securityContext.fsGroup | int64 }}
-      {{- if and (.Values.securityContext.runAsUser) }}
+        {{- if and (.Values.securityContext.runAsUser) }}
         runAsUser: {{ .Values.securityContext.runAsUser | int64 }}
-      {{- end }}
+        {{- end }}
+        {{- end }}
 {{- end }}
       serviceAccountName: {{ template "solace.serviceAccountName" . }}
       terminationGracePeriodSeconds: 1200
       containers:
       - name: pubsubplus
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        image: {{ include "solace.image" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
         resources:
           requests:
@@ -114,14 +115,19 @@ spec:
             command:
             - /mnt/disks/solace/readiness_check.sh
         securityContext:
+          {{- if .Values.securityContext.containerSecurityContext }}
+          {{- toYaml .Values.securityContext.containerSecurityContext | nindent 10 }}
+          {{- else }}
+          # Backward compatible defaults
           privileged: false
-{{- if semverCompare "<9.4" (default "9.4" (regexFind "\\d+\\.\\d+" .Values.image.tag)) }}
+          {{- if semverCompare "<9.4" (default "9.4" (regexFind "\\d+\\.\\d+" .Values.image.tag)) }}
           # need capabilities opened up if Solace Event Broker version is lower than 9.4
           capabilities:
             add:
               - IPC_LOCK
               - SYS_NICE
-{{- end }}
+          {{- end }}
+          {{- end }}
         env:
         - name: STATEFULSET_NAME
           value: {{ template "solace.fullname" . }}
@@ -165,7 +171,12 @@ spec:
 {{- if .Values.solace.extraEnvVars }}
       {{- range $item := .Values.solace.extraEnvVars }}
         - name: {{ $item.name }}
+          {{- if $item.value }}
           value: {{ $item.value | quote }}
+          {{- else if $item.valueFrom }}
+          valueFrom:
+{{ toYaml $item.valueFrom | indent 12 }}
+          {{- end }}
       {{- end }}
 {{- end }}
 {{- if or .Values.solace.extraEnvVarsCM .Values.solace.extraEnvVarsSecret }}
@@ -261,7 +272,7 @@ spec:
 {{- end }}
 {{- if ( .Values.insights.enabled) }}
       - name: insights-agent
-        image: {{ .Values.insights.image.repository }}:{{ .Values.insights.image.tag }}
+        image: {{ include "solace.insightsImage" . }}
         imagePullPolicy: Always
         resources:
           requests:

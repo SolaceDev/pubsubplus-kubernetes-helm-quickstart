@@ -38,3 +38,52 @@ Determine the service type based on redundancy
 {{- end -}}
 {{- $serviceType -}}
 {{- end -}}
+
+{{/*
+Construct the full broker image name
+*/}}
+{{- define "solace.image" -}}
+{{- if .Values.image.registry -}}
+{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
+{{- else -}}
+{{ .Values.image.repository }}:{{ .Values.image.tag }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Construct the full insights agent image name
+*/}}
+{{- define "solace.insightsImage" -}}
+{{- if .Values.insights.image.registry -}}
+{{ .Values.insights.image.registry }}/{{ .Values.insights.image.repository }}:{{ .Values.insights.image.tag }}
+{{- else -}}
+{{ .Values.insights.image.repository }}:{{ .Values.insights.image.tag }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "solace.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Common labels
+*/}}
+{{- define "solace.labels" -}}
+helm.sh/chart: {{ include "solace.chart" . }}
+{{ include "solace.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+Selector labels
+*/}}
+{{- define "solace.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "solace.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}

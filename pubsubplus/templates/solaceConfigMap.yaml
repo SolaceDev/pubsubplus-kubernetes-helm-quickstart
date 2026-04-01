@@ -3,10 +3,7 @@ kind: ConfigMap
 metadata:
   name: {{ template "solace.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ template "solace.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    {{- include "solace.labels" . | nindent 4 }}
 data:
   init.sh: |-
     export username_admin_passwordfilepath="/mnt/disks/secrets/admin/username_admin_password"
