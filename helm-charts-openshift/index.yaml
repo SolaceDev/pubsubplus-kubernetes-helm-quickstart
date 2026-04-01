@@ -4,9 +4,9 @@ entries:
   - annotations:
       charts.openshift.io/name: Solace Event Broker, non-HA
     apiVersion: v2
-    created: "2025-12-05T12:32:12.254680144Z"
+    created: "2026-04-01T19:10:05.409309276Z"
     description: Deploy a single-node non-HA Solace Event Broker Software on OpenShift
-    digest: 52dd47e1f10cc1fe6b5c870e2dcf4ff275709032b9da293e3caabb231d67fee1
+    digest: ca9c08bbfcdd2514db0244b46ae61b126a246517ad1e25260510905c08c3b54c
     home: https://dev.solace.com
     icon: https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/images/solace.png
     keywords:
@@ -38,10 +38,10 @@ entries:
   - annotations:
       charts.openshift.io/name: Solace Event Broker for Developers
     apiVersion: v2
-    created: "2025-12-05T12:32:12.25604582Z"
+    created: "2026-04-01T19:10:05.411809299Z"
     description: Deploy a minimum footprint single-node non-HA Solace Event Broker
       Software on OpenShift for development purposes
-    digest: fced42b41ffea5482e61ae102c49048cdc5987d2d6eae74905f1cbd012f1abba
+    digest: c46e2e8f2c2e2aaf1b93130dc9efa5501d91b85402e7712f73eff66f21cb3730
     home: https://dev.solace.com
     icon: https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/images/solace.png
     keywords:
@@ -73,10 +73,10 @@ entries:
   - annotations:
       charts.openshift.io/name: Solace Event Broker, HA
     apiVersion: v2
-    created: "2025-12-05T12:32:12.257364398Z"
+    created: "2026-04-01T19:10:05.413252965Z"
     description: Deploy an HA redundancy group of Solace Event Broker Software on
       OpenShift
-    digest: 1c94fb25020d95b0aafabca2aa4a48d99f73b50ec276aa6c3d9fbbfebebde98c
+    digest: d98f10dcb9b32599ebd79aa0c7da96eb35840f075831eb6e8d67f06991fb32b2
     home: https://dev.solace.com
     icon: https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/images/solace.png
     keywords:
@@ -104,4 +104,4 @@ entries:
     urls:
     - https://solacedev.github.io/pubsubplus-kubernetes-helm-quickstart/helm-charts-openshift/pubsubplus-openshift-ha-3.9.0.tgz
     version: 3.9.0
-generated: "2025-12-05T12:32:12.25190687Z"
+generated: "2026-04-01T19:10:05.407736782Z"
