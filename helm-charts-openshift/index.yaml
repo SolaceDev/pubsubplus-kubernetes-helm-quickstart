@@ -4,9 +4,9 @@ entries:
   - annotations:
       charts.openshift.io/name: Solace Event Broker, non-HA
     apiVersion: v2
-    created: "2026-07-16T18:53:58.007006077Z"
+    created: "2026-07-29T15:57:50.352933537Z"
     description: Deploy a single-node non-HA Solace Event Broker Software on OpenShift
-    digest: 485e9b03808caaa8e53fa57a0b5ac5ca12c615226f80bdd2c7b9afb0491b4d57
+    digest: 831b9b98de3f20dadd6db62a77758eac3006ec736622c50ce3a5943dd001945f
     home: https://dev.solace.com
     icon: https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/images/solace.png
     keywords:
@@ -38,10 +38,10 @@ entries:
   - annotations:
       charts.openshift.io/name: Solace Event Broker for Developers
     apiVersion: v2
-    created: "2026-07-16T18:53:58.008738375Z"
+    created: "2026-07-29T15:57:50.354636992Z"
     description: Deploy a minimum footprint single-node non-HA Solace Event Broker
       Software on OpenShift for development purposes
-    digest: 2e4da8089b1e3afe6dd145f91cdf163d40b6e66d180bfd3d2ae393a2bede7602
+    digest: 98b034aa78422167a6f40e81b2e628f608d29b6a5866d7752aa27e85a4db121f
     home: https://dev.solace.com
     icon: https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/images/solace.png
     keywords:
@@ -73,10 +73,10 @@ entries:
   - annotations:
       charts.openshift.io/name: Solace Event Broker, HA
     apiVersion: v2
-    created: "2026-07-16T18:53:58.010350008Z"
+    created: "2026-07-29T15:57:50.356198764Z"
     description: Deploy an HA redundancy group of Solace Event Broker Software on
       OpenShift
-    digest: 38e580eb522416cbd11735f78c8bb7aec2c5d159739eb5e3ce0fbf17e01dfd56
+    digest: db209cc93fbfe42a5cfb3d5f3c968cd97736f2ea64f968838e0275226dcd9a98
     home: https://dev.solace.com
     icon: https://solaceproducts.github.io/pubsubplus-kubernetes-helm-quickstart/images/solace.png
     keywords:
@@ -104,4 +104,4 @@ entries:
     urls:
     - https://solacedev.github.io/pubsubplus-kubernetes-helm-quickstart/helm-charts-openshift/pubsubplus-openshift-ha-3.10.0.tgz
     version: 3.10.0
-generated: "2026-07-16T18:53:57.984089395Z"
+generated: "2026-07-29T15:57:50.3312572Z"
