@@ -24,12 +24,12 @@ jobs:
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash # setup Helm 3
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2
       with:
         ref: master
 
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v0.6.0
+      uses: google-github-actions/setup-gcloud@877d4953d2c70a0ba7ef3290ae968eb24af233bb # v0.6.0
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
         service_account_key: ${{ secrets.GCP_SA_KEY }}
